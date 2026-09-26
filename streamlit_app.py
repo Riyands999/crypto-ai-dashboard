@@ -139,7 +139,7 @@ with tab_futures:
             st.write(f"**CMP:** `${entry:,.4f}` | **RSI:** `{data['rsi']:.1f}`")
             st.write(f"**Funding Rate:** `{data['funding']:+.4f}%`")
             st.metric("Target (TP1)", f"${tp1:,.4f}", delta=f"{'+2.5%' if is_long else '-2.5%'}")
-            st.caption(f"Stop Loss: ${sl:,.4f} \vert{} TP2:${tp2:,.4f}")
+            st.caption(f"Stop Loss: ${sl:,.4f} | TP2: ${tp2:,.4f}")
             st.divider()
 
 with tab_spot:
