@@ -2,8 +2,6 @@ import streamlit as st
 import ccxt
 import pandas as pd
 import numpy as np
-import requests
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.set_page_config(page_title="AI Crypto Terminal", layout="wide", page_icon="⚡")
 
@@ -16,19 +14,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 1. LIVE NEWS & SENTIMENT ENGINE (Ad-Style Banner)
-analyzer = SentimentIntensityAnalyzer()
-
+# 1. LIVE NEWS TICKER (Ad-Style Banner)
 @st.cache_data(ttl=600)
 def fetch_live_news():
-    headlines = [
+    return [
         ("Institutional capital inflows reach multi-month highs in spot ETFs", 0.72),
         ("Bitcoin network hash rate hits new historical peak", 0.65),
         ("Derivatives funding rates remain neutral across primary exchanges", 0.15),
         ("Solana on-chain decentralized exchange volume continues uptrend", 0.81),
         ("Macro economic data indicates stable liquidity environment", 0.40)
     ]
-    return headlines
 
 news_items = fetch_live_news()
 ticker_items_html = "".join([
@@ -95,14 +90,14 @@ def get_market_analysis(symbol, tf='1h'):
         rs = gain / (loss + 1e-9)
         df['rsi'] = 100 - (100 / (1 + rs))
         
-        cmp = df['close'].iloc[-1]
-        rsi = df['rsi'].iloc[-1]
-        ema50 = df['ema50'].iloc[-1]
+        cmp = float(df['close'].iloc[-1])
+        rsi = float(df['rsi'].iloc[-1])
+        ema50 = float(df['ema50'].iloc[-1])
         
         # Derivatives (Funding Rate)
         try:
             funding_info = futures_exchange.fetch_funding_rate(symbol)
-            funding_rate = funding_info['fundingRate'] * 100
+            funding_rate = float(funding_info['fundingRate']) * 100
         except Exception:
             funding_rate = 0.01
             
@@ -111,8 +106,8 @@ def get_market_analysis(symbol, tf='1h'):
             'rsi': rsi,
             'ema50': ema50,
             'funding': funding_rate,
-            'high_24h': df['high'].iloc[-24:].max(),
-            'low_24h': df['low'].iloc[-24:].min()
+            'high_24h': float(df['high'].iloc[-24:].max()),
+            'low_24h': float(df['low'].iloc[-24:].min())
         }
     except Exception:
         return None
@@ -129,7 +124,6 @@ with tab_futures:
         if not data:
             continue
             
-        # Futures Signal Rule
         is_long = data['cmp'] > data['ema50'] and data['rsi'] < 65 and data['funding'] < 0.03
         dir_badge = "🟢 LONG" if is_long else "🔴 SHORT / WAIT"
         badge_color = "#00c853" if is_long else "#ff5252"
